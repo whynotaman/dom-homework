@@ -101,6 +101,17 @@
       }
     });
 
+    // const validateInputs = () => {
+    //   if (nameInputElement.value === "" && commentElement.value === "") {
+    //     buttonElement.disabled = true;
+    //   } else {
+    //     buttonElement.disabled = false;
+    //   }
+    // };
+
+    // nameInputElement.addEventListener("inpute", validateInputs);
+    // commentElement.addEventListener("inpute", validateInputs);
+
     buttonElement.addEventListener("click", () => {
       // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
       const oldListElement = listElement.innerHTML;
@@ -108,10 +119,12 @@
       if (nameInputElement.value === "" && commentElement.value === "") {
         nameInputElement.classList.add("error");
         commentElement.classList.add("error");
+        buttonElement.disabled = true;
         return;
       } else {
         nameInputElement.classList.remove("error");
         commentElement.classList.remove("error");
+        buttonElement.disabled = false;
       }
 
       // Добавил новый список к старым
@@ -138,18 +151,11 @@
           </div>
         </li>`;
 
-      nameInputElement.addEventListener =
-        ("input",
-        () => {
-          if (nameInputElement.value === "" && commentElement.value === "") {
-            buttonElement.disabled = true;
-          } else {
-            buttonElement.disabled = false;
-          }
-        });
-
       nameInputElement.value = "";
       commentElement.value = "";
+      // buttonElement.disabled = true;
+
+      // validateInputs();
     });
   </script>
 </html>
