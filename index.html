@@ -8,7 +8,7 @@
 
   <body>
     <div class="container">
-      <ul class="comments">
+      <ul id="comments" class="comments">
         <li class="comment">
           <div class="comment-header">
             <div>Глеб Фокин</div>
@@ -24,6 +24,9 @@
               <span class="likes-counter">3</span>
               <button class="like-button"></button>
             </div>
+          </div>
+          <div>
+            <button>Удалить</button>
           </div>
         </li>
         <li class="comment">
@@ -42,6 +45,9 @@
               <button class="like-button -active-like"></button>
             </div>
           </div>
+          <div>
+            <button>Удалить</button>
+          </div>
         </li>
       </ul>
       <div class="add-form">
@@ -49,15 +55,17 @@
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
+          value=""
         />
         <textarea
           type="textarea"
           class="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
+          value=""
         ></textarea>
         <div class="add-form-row">
-          <button class="add-form-button">Написать</button>
+          <button id="add-button" class="add-form-button">Написать</button>
         </div>
       </div>
     </div>
@@ -100,7 +108,6 @@
       if (nameInputElement.value === "" && commentElement.value === "") {
         nameInputElement.classList.add("error");
         commentElement.classList.add("error");
-        buttonElement.disabled = true;
         return;
       } else {
         nameInputElement.classList.remove("error");
@@ -130,7 +137,17 @@
             <button>Удалить</button>
           </div>
         </li>`;
-      buttonElement.disabled = false;
+
+      nameInputElement.addEventListener =
+        ("input",
+        () => {
+          if (nameInputElement.value === "" && commentElement.value === "") {
+            buttonElement.disabled = true;
+          } else {
+            buttonElement.disabled = false;
+          }
+        });
+
       nameInputElement.value = "";
       commentElement.value = "";
     });
