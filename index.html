@@ -65,7 +65,74 @@
 
   <script>
     "use strict";
-    // Код писать здесь
-    console.log("It works!");
+    const buttonElement = document.getElementById("add-button");
+    const listElement = document.getElementById("comments");
+    const nameInputElement = document.querySelector(".add-form-name");
+    const commentElement = document.querySelector(".add-form-text");
+    const date = new Date();
+    let options = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    const formattedDate = date.toLocaleString("ru-RU", options);
+
+    nameInputElement.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        buttonElement.click();
+      }
+    });
+
+    commentElement.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        buttonElement.click();
+      }
+    });
+
+    buttonElement.addEventListener("click", () => {
+      // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
+      const oldListElement = listElement.innerHTML;
+
+      if (nameInputElement.value === "" && commentElement.value === "") {
+        nameInputElement.classList.add("error");
+        commentElement.classList.add("error");
+        buttonElement.disabled = true;
+        return;
+      } else {
+        nameInputElement.classList.remove("error");
+        commentElement.classList.remove("error");
+      }
+
+      // Добавил новый список к старым
+      listElement.innerHTML =
+        oldListElement +
+        `<li class="comment">
+          <div class="comment-header">
+            <div>${nameInputElement.value}</div>
+            <div>${formattedDate}</div>
+          </div>
+          <div class="comment-body">
+            <div class="comment-text">
+              ${commentElement.value}
+            </div>
+          </div>
+          <div class="comment-footer">
+            <div class="likes">
+              <span class="likes-counter">0</span>
+              <button class="like-button"></button>
+            </div>
+          </div>
+          <div>
+            <button>Удалить</button>
+          </div>
+        </li>`;
+      buttonElement.disabled = false;
+      nameInputElement.value = "";
+      commentElement.value = "";
+    });
   </script>
 </html>
