@@ -101,16 +101,13 @@
       }
     });
 
-    // const validateInputs = () => {
-    //   if (nameInputElement.value === "" && commentElement.value === "") {
-    //     buttonElement.disabled = true;
-    //   } else {
-    //     buttonElement.disabled = false;
-    //   }
-    // };
+    nameInputElement.addEventListener("input", () => {
+      buttonElement.disabled = false;
+    });
 
-    // nameInputElement.addEventListener("inpute", validateInputs);
-    // commentElement.addEventListener("inpute", validateInputs);
+    commentElement.addEventListener("input", () => {
+      buttonElement.disabled = false;
+    });
 
     buttonElement.addEventListener("click", () => {
       // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
@@ -121,10 +118,16 @@
         commentElement.classList.add("error");
         buttonElement.disabled = true;
         return;
-      } else {
-        nameInputElement.classList.remove("error");
+      } else if (nameInputElement.value === "" && commentElement.value !== "") {
+        nameInputElement.classList.add("error");
         commentElement.classList.remove("error");
-        buttonElement.disabled = false;
+        buttonElement.disabled = true;
+        return;
+      } else if (commentElement.value === "" && nameInputElement.value !== "") {
+        commentElement.classList.add("error");
+        nameInputElement.classList.remove("error");
+        buttonElement.disabled = true;
+        return;
       }
 
       // Добавил новый список к старым
@@ -151,11 +154,11 @@
           </div>
         </li>`;
 
+      commentElement.classList.remove("error");
+      nameInputElement.classList.remove("error");
       nameInputElement.value = "";
       commentElement.value = "";
       // buttonElement.disabled = true;
-
-      // validateInputs();
     });
   </script>
 </html>
