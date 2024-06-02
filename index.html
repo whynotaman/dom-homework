@@ -38,6 +38,8 @@
     const listElement = document.getElementById("comments");
     const nameInputElement = document.querySelector(".add-form-name");
     const commentElement = document.querySelector(".add-form-text");
+    const likeButton = document.querySelectorAll(".like-button");
+
     const date = new Date();
     const formattedDate = date.toLocaleString("ru-RU", {
       year: "numeric",
@@ -52,14 +54,14 @@
         name: "Глеб Фокин",
         date: "12.02.22 12:18",
         comments: "Это будет первый комментарий на этой странице",
-        likes: 3,
+        countLikes: 3,
         isLikes: true,
       },
       {
         name: "Варвара Н.",
         date: "13.02.22 19:22",
         comments: "Мне нравится как оформлена эта страница! ❤",
-        likes: 75,
+        countLikes: 75,
         isLikes: true,
       },
     ];
@@ -67,34 +69,37 @@
     // Рендер комментариев
     const renderComments = () => {
       const usersHtml = users
-        .map((user) => {
+        .map((user, index) => {
+          // if (user[index].isLikes === true || user[index].isLikes === false) {
+
+          // }
           return `<li class="comment">
-          <div class="comment-header">
-            <div>${user.name}</div>
-            <div>${user.date}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${user.comments}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">${user.likes}</span>
-              <button class="like-button" data-color="#fff"></button>
-            </div>
-          </div>
-          <div>
-            <button>Удалить</button>
-          </div>
-        </li>`;
+              <div class="comment-header">
+                <div>${user.name}</div>
+                <div>${user.date}</div>
+              </div>
+              <div class="comment-body">
+                <div class="comment-text">
+                  ${user.comments}
+                </div>
+              </div>
+              <div class="comment-footer">
+                <div class="likes">
+                  <span class="likes-counter">${user.countLikes}</span>
+                  <button class="like-button" data-index=${index}></button>
+                </div>
+              </div>
+              <div>
+                <button>Удалить</button>
+              </div>
+            </li>`;
         })
         .join("");
 
       listElement.innerHTML = usersHtml;
-    };
 
-    renderComments();
+      initLikeButtonElements();
+    };
 
     const initLikeButtonElements = () => {
       const likeButtonElement = document.querySelectorAll(".like-button");
@@ -106,7 +111,7 @@
       }
     };
 
-    initLikeButtonElements();
+    renderComments();
 
     // Отправка по клику на интер
     nameInputElement.addEventListener("keypress", (e) => {
@@ -152,30 +157,16 @@
         return;
       }
 
-      // Добавил новый список к старым
-      listElement.innerHTML =
-        oldListElement +
-        `<li class="comment">
-          <div class="comment-header">
-            <div>${nameInputElement.value}</div>
-            <div>${formattedDate}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${commentElement.value}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">0</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-          <div>
-            <button>Удалить</button>
-          </div>
-        </li>`;
+      // Добавляем новые комментарии
+      users.push({
+        name: nameInputElement.value,
+        date: formattedDate,
+        comments: commentElement.value,
+        countLikes: 0,
+        isLikes: false,
+      });
 
+      renderComments();
       commentElement.classList.remove("error");
       nameInputElement.classList.remove("error");
       nameInputElement.value = "";
