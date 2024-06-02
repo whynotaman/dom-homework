@@ -38,7 +38,6 @@
     const listElement = document.getElementById("comments");
     const nameInputElement = document.querySelector(".add-form-name");
     const commentElement = document.querySelector(".add-form-text");
-    const likeButton = document.querySelectorAll(".like-button");
 
     const date = new Date();
     const formattedDate = date.toLocaleString("ru-RU", {
@@ -49,44 +48,43 @@
       minute: "2-digit",
     });
 
-    const users = [
+    const comments = [
       {
         name: "Глеб Фокин",
         date: "12.02.22 12:18",
         comments: "Это будет первый комментарий на этой странице",
-        countLikes: 3,
-        isLikes: true,
+        like: 3,
+        isLike: false,
       },
       {
         name: "Варвара Н.",
         date: "13.02.22 19:22",
         comments: "Мне нравится как оформлена эта страница! ❤",
-        countLikes: 75,
-        isLikes: true,
+        like: 75,
+        isLike: false,
       },
     ];
 
     // Рендер комментариев
     const renderComments = () => {
-      const usersHtml = users
-        .map((user, index) => {
-          // if (user[index].isLikes === true || user[index].isLikes === false) {
-
-          // }
+      const commentsHtml = comments
+        .map((comment, index) => {
+          let activeLike;
+          comment.isLike ? (activeLike = "-active-like") : false;
           return `<li class="comment">
               <div class="comment-header">
-                <div>${user.name}</div>
-                <div>${user.date}</div>
+                <div>${comment.name}</div>
+                <div>${comment.date}</div>
               </div>
               <div class="comment-body">
                 <div class="comment-text">
-                  ${user.comments}
+                  ${comment.comments}
                 </div>
               </div>
               <div class="comment-footer">
                 <div class="likes">
-                  <span class="likes-counter">${user.countLikes}</span>
-                  <button class="like-button" data-index=${index}></button>
+                  <span class="likes-counter">${comment.like}</span>
+                  <button data-index=${index} class="like-button" ${activeLike}></button>
                 </div>
               </div>
               <div>
@@ -96,21 +94,29 @@
         })
         .join("");
 
-      listElement.innerHTML = usersHtml;
-
-      initLikeButtonElements();
+      listElement.innerHTML = commentsHtml;
+      initLikeButtonElement();
     };
 
-    const initLikeButtonElements = () => {
-      const likeButtonElement = document.querySelectorAll(".like-button");
+    const initLikeButtonElement = () => {
+      const likeButton = document.querySelectorAll(".like-button");
 
-      for (const likeButton of likeButtonElement) {
-        likeButton.addEventListener("click", () => {
-          likeButton.dataset.color;
+      for (const likeButtons of likeButton) {
+        likeButtons.addEventListener("click", () => {
+          const index = likeButtons.dataset.index;
+          if (comments[index].isLike === false) {
+            comments[index].isLike = true;
+            comments[index].like++;
+          } else {
+            comments[index].isLike = false;
+            comments[index].like--;
+          }
+          renderComments();
         });
       }
     };
 
+    // Первоначальный ренедер комментариев
     renderComments();
 
     // Отправка по клику на интер
@@ -158,15 +164,16 @@
       }
 
       // Добавляем новые комментарии
-      users.push({
+      comments.push({
         name: nameInputElement.value,
         date: formattedDate,
         comments: commentElement.value,
-        countLikes: 0,
-        isLikes: false,
+        like: 0,
+        isLike: false,
       });
 
       renderComments();
+      initLikeButtonElement();
       commentElement.classList.remove("error");
       nameInputElement.classList.remove("error");
       nameInputElement.value = "";
