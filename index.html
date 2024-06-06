@@ -9,46 +9,7 @@
   <body>
     <div class="container">
       <ul id="comments" class="comments">
-        <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-          <div>
-            <button>Удалить</button>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-          <div>
-            <button>Удалить</button>
-          </div>
-        </li>
+        <!-- Список рендерится из JS -->
       </ul>
       <div class="add-form">
         <input
@@ -77,23 +38,94 @@
     const listElement = document.getElementById("comments");
     const nameInputElement = document.querySelector(".add-form-name");
     const commentElement = document.querySelector(".add-form-text");
+
     const date = new Date();
-    let options = {
+    const formattedDate = date.toLocaleString("ru-RU", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-    };
-    const formattedDate = date.toLocaleString("ru-RU", options);
+    });
 
+    const comments = [
+      {
+        name: "Глеб Фокин",
+        date: "12.02.22 12:18",
+        comments: "Это будет первый комментарий на этой странице",
+        like: 3,
+        isLike: false,
+      },
+      {
+        name: "Варвара Н.",
+        date: "13.02.22 19:22",
+        comments: "Мне нравится как оформлена эта страница! ❤",
+        like: 75,
+        isLike: false,
+      },
+    ];
+
+    // Рендер комментариев
+    const renderComments = () => {
+      const commentsHtml = comments
+        .map((comment, index) => {
+          let activeLike;
+          comment.isLike ? (activeLike = "-active-like") : false;
+          return `<li class="comment">
+              <div class="comment-header">
+                <div>${comment.name}</div>
+                <div>${comment.date}</div>
+              </div>
+              <div class="comment-body">
+                <div class="comment-text">
+                  ${comment.comments}
+                </div>
+              </div>
+              <div class="comment-footer">
+                <div class="likes">
+                  <span class="likes-counter">${comment.like}</span>
+                  <button data-index=${index} class="like-button ${activeLike}"></button>
+                </div>
+              </div>
+              <div>
+                <button>Удалить</button>
+              </div>
+            </li>`;
+        })
+        .join("");
+
+      listElement.innerHTML = commentsHtml;
+      initLikeButtonElement();
+    };
+
+    const initLikeButtonElement = () => {
+      const likeButton = document.querySelectorAll(".like-button");
+
+      for (const likeButtons of likeButton) {
+        likeButtons.addEventListener("click", () => {
+          const index = likeButtons.dataset.index;
+          if (comments[index].isLike === false) {
+            comments[index].isLike = true;
+            comments[index].like++;
+          } else {
+            comments[index].isLike = false;
+            comments[index].like--;
+          }
+          renderComments();
+        });
+      }
+    };
+
+    // Первоначальный ренедер комментариев
+    renderComments();
+
+    // Отправка по клику на интер
     nameInputElement.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         buttonElement.click();
       }
     });
-
     commentElement.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -101,14 +133,15 @@
       }
     });
 
+    // Дизейбл кнопки "отправить"
     nameInputElement.addEventListener("input", () => {
       buttonElement.disabled = false;
     });
-
     commentElement.addEventListener("input", () => {
       buttonElement.disabled = false;
     });
 
+    // Клик по кнопке "Отправить"
     buttonElement.addEventListener("click", () => {
       // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
       const oldListElement = listElement.innerHTML;
@@ -130,35 +163,21 @@
         return;
       }
 
-      // Добавил новый список к старым
-      listElement.innerHTML =
-        oldListElement +
-        `<li class="comment">
-          <div class="comment-header">
-            <div>${nameInputElement.value}</div>
-            <div>${formattedDate}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${commentElement.value}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">0</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-          <div>
-            <button>Удалить</button>
-          </div>
-        </li>`;
+      // Добавляем новые комментарии
+      comments.push({
+        name: nameInputElement.value,
+        date: formattedDate,
+        comments: commentElement.value,
+        like: 0,
+        isLike: false,
+      });
 
+      renderComments();
+      initLikeButtonElement();
       commentElement.classList.remove("error");
       nameInputElement.classList.remove("error");
       nameInputElement.value = "";
       commentElement.value = "";
-      // buttonElement.disabled = true;
     });
   </script>
 </html>
