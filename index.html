@@ -39,14 +39,17 @@
     const nameInputElement = document.querySelector(".add-form-name");
     const commentElement = document.querySelector(".add-form-text");
 
-    const date = new Date();
-    const formattedDate = date.toLocaleString("ru-RU", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const getFormattedDate = () => {
+      const date = new Date();
+      const options = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      return date.toLocaleString("ru-RU", options);
+    };
 
     const comments = [
       {
@@ -69,6 +72,9 @@
     const renderComments = () => {
       const commentsHtml = comments
         .map((comment, index) => {
+          comment.comments = comment.comments
+            .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
+            .replaceAll("QUOTE_END", "</div>");
           let activeLike;
           comment.isLike ? (activeLike = "-active-like") : false;
           return `<li class="comment">
@@ -76,7 +82,7 @@
                 <div>${comment.name}</div>
                 <div>${comment.date}</div>
               </div>
-              <div class="comment-body">
+              <div class="comment-body" data-comment=${index}>
                 <div class="comment-text">
                   ${comment.comments}
                 </div>
@@ -95,9 +101,30 @@
         .join("");
 
       listElement.innerHTML = commentsHtml;
+      getFormattedDate();
       initLikeButtonElement();
+      initQuoteComment();
     };
 
+    //Ответить другому юзеру
+    const initQuoteComment = () => {
+      const quoteComment = document.querySelectorAll(".comment-body");
+      const commentElement = document.querySelector(".add-form-text");
+
+      for (const quoteComments of quoteComment) {
+        quoteComments.addEventListener("click", (e) => {
+          const index = quoteComments.dataset.comment;
+          commentElement.value =
+            "QUOTE_BEGIN " +
+            comments[index].name +
+            ":\n " +
+            comments[index].comments +
+            "QUOTE_END";
+        });
+      }
+    };
+
+    // Поставить лайк
     const initLikeButtonElement = () => {
       const likeButton = document.querySelectorAll(".like-button");
 
@@ -115,9 +142,6 @@
         });
       }
     };
-
-    // Первоначальный ренедер комментариев
-    renderComments();
 
     // Отправка по клику на интер
     nameInputElement.addEventListener("keypress", (e) => {
@@ -140,6 +164,8 @@
     commentElement.addEventListener("input", () => {
       buttonElement.disabled = false;
     });
+    // Первоначальный ренедер комментариев
+    renderComments();
 
     // Клик по кнопке "Отправить"
     buttonElement.addEventListener("click", () => {
@@ -166,14 +192,14 @@
       // Добавляем новые комментарии
       comments.push({
         name: nameInputElement.value,
-        date: formattedDate,
+        date: getFormattedDate(),
         comments: commentElement.value,
         like: 0,
         isLike: false,
       });
 
-      renderComments();
       initLikeButtonElement();
+      renderComments();
       commentElement.classList.remove("error");
       nameInputElement.classList.remove("error");
       nameInputElement.value = "";
