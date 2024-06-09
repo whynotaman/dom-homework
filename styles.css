@@ -136,6 +136,15 @@ body {
   opacity: 0.9;
 }
 
+.quote {
+  background-color: #fff;
+  color: #000;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  white-space: pre-line;
+}
+
 .error {
   background-color: #ffb5a8;
 }
