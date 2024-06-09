@@ -51,50 +51,32 @@
       return date.toLocaleString("ru-RU", options);
     };
 
-    const comments = [
-      {
-        name: "Глеб Фокин",
-        date: "12.02.22 12:18",
-        comments: "Это будет первый комментарий на этой странице",
-        like: 3,
-        isLike: false,
-      },
-      {
-        name: "Варвара Н.",
-        date: "13.02.22 19:22",
-        comments: "Мне нравится как оформлена эта страница! ❤",
-        like: 75,
-        isLike: false,
-      },
-    ];
+    let comments = [];
 
     // Рендер комментариев
     const renderComments = () => {
       const commentsHtml = comments
         .map((comment, index) => {
-          comment.comments = comment.comments
+          comment.text = comment.text
             .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
             .replaceAll("QUOTE_END", "</div>");
           let activeLike;
-          comment.isLike ? (activeLike = "-active-like") : false;
+          comment.isLiked ? (activeLike = "-active-like") : false;
           return `<li class="comment">
               <div class="comment-header">
-                <div>${comment.name}</div>
+                <div>${comment.author.name}</div>
                 <div>${comment.date}</div>
               </div>
               <div class="comment-body" data-comment=${index}>
                 <div class="comment-text">
-                  ${comment.comments}
+                  ${comment.text}
                 </div>
               </div>
               <div class="comment-footer">
                 <div class="likes">
-                  <span class="likes-counter">${comment.like}</span>
+                  <span class="likes-counter">${comment.likes}</span>
                   <button data-index=${index} class="like-button ${activeLike}"></button>
                 </div>
-              </div>
-              <div>
-                <button>Удалить</button>
               </div>
             </li>`;
         })
@@ -106,6 +88,20 @@
       initQuoteComment();
     };
 
+    // GET API
+    fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Нет ответа от сервера");
+        return response.json();
+      })
+      .then((responseData) => {
+        console.log(responseData);
+        comments = responseData.comments;
+        renderComments();
+      });
+
     //Ответить другому юзеру
     const initQuoteComment = () => {
       const quoteComment = document.querySelectorAll(".comment-body");
@@ -116,9 +112,9 @@
           const index = quoteComments.dataset.comment;
           commentElement.value =
             "QUOTE_BEGIN " +
-            comments[index].name +
+            comments[index].author.name +
             ":\n " +
-            comments[index].comments +
+            comments[index].text +
             "QUOTE_END";
         });
       }
@@ -126,17 +122,17 @@
 
     // Поставить лайк
     const initLikeButtonElement = () => {
-      const likeButton = document.querySelectorAll(".like-button");
+      const likeButtons = document.querySelectorAll(".like-button");
 
-      for (const likeButtons of likeButton) {
-        likeButtons.addEventListener("click", () => {
-          const index = likeButtons.dataset.index;
-          if (comments[index].isLike === false) {
-            comments[index].isLike = true;
-            comments[index].like++;
+      for (const likeButton of likeButtons) {
+        likeButton.addEventListener("click", () => {
+          const index = likeButton.dataset.index;
+          if (comments[index].isLiked === false) {
+            comments[index].isLiked = true;
+            comments[index].likes++;
           } else {
-            comments[index].isLike = false;
-            comments[index].like--;
+            comments[index].isLiked = false;
+            comments[index].likes--;
           }
           renderComments();
         });
@@ -191,11 +187,11 @@
 
       // Добавляем новые комментарии
       comments.push({
-        name: nameInputElement.value,
+        author: { name: nameInputElement.value },
         date: getFormattedDate(),
-        comments: commentElement.value,
-        like: 0,
-        isLike: false,
+        likes: 0,
+        isLiked: false,
+        text: commentElement.value,
       });
 
       initLikeButtonElement();
