@@ -53,6 +53,20 @@
 
     let comments = [];
 
+    // GET API
+    fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Нет ответа от сервера");
+        return response.json();
+      })
+      .then((responseData) => {
+        console.log(responseData);
+        comments = responseData.comments;
+        renderComments();
+      });
+
     // Рендер комментариев
     const renderComments = () => {
       const commentsHtml = comments
@@ -87,20 +101,6 @@
       initLikeButtonElement();
       initQuoteComment();
     };
-
-    // GET API
-    fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
-      method: "GET",
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Нет ответа от сервера");
-        return response.json();
-      })
-      .then((responseData) => {
-        console.log(responseData);
-        comments = responseData.comments;
-        renderComments();
-      });
 
     //Ответить другому юзеру
     const initQuoteComment = () => {
@@ -193,6 +193,23 @@
         isLiked: false,
         text: commentElement.value,
       });
+
+      fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
+        method: "POST",
+        body: JSON.stringify({
+          name: nameInputElement.value,
+          text: commentElement.value,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Нет ответа от сервера");
+          return response.json();
+        })
+        .then((responseData) => {
+          console.log(responseData);
+          comments = responseData.comments;
+          renderComments();
+        });
 
       initLikeButtonElement();
       renderComments();
