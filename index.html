@@ -11,6 +11,7 @@
       <ul id="comments" class="comments">
         <!-- Список рендерится из JS -->
       </ul>
+      <p class="loading-comments">Комменатрии загружаются...</p>
       <div class="add-form">
         <input
           type="text"
@@ -62,10 +63,18 @@
         return response.json();
       })
       .then((responseData) => {
-        console.log(responseData);
         comments = responseData.comments;
         renderComments();
       });
+
+    // Задержка отображения
+    const loadedComments = () => {
+      const loadingElement = document.querySelector(".loading-comments");
+
+      setTimeout(() => {
+        loadingElement.style.display = "none";
+      }, 500);
+    };
 
     // Рендер комментариев
     const renderComments = () => {
@@ -76,7 +85,8 @@
             .replaceAll("QUOTE_END", "</div>");
           let activeLike;
           comment.isLiked ? (activeLike = "-active-like") : false;
-          return `<li class="comment">
+          return `
+          <li class="comment">
               <div class="comment-header">
                 <div>${comment.author.name}</div>
                 <div>${comment.date}</div>
@@ -100,6 +110,7 @@
       getFormattedDate();
       initLikeButtonElement();
       initQuoteComment();
+      loadedComments();
     };
 
     //Ответить другому юзеру
@@ -115,7 +126,7 @@
             comments[index].author.name +
             ":\n " +
             comments[index].text +
-            "QUOTE_END";
+            "QUOTE_END ";
         });
       }
     };
@@ -160,13 +171,17 @@
     commentElement.addEventListener("input", () => {
       buttonElement.disabled = false;
     });
-    // Первоначальный ренедер комментариев
+
+    // Первый рендер комментариев
     renderComments();
 
     // Клик по кнопке "Отправить"
     buttonElement.addEventListener("click", () => {
       // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
       const oldListElement = listElement.innerHTML;
+
+      buttonElement.disabled = true;
+      buttonElement.textContent = "Добавляется";
 
       if (nameInputElement.value === "" && commentElement.value === "") {
         nameInputElement.classList.add("error");
@@ -206,9 +221,11 @@
           return response.json();
         })
         .then((responseData) => {
-          console.log(responseData);
-          comments = responseData.comments;
           renderComments();
+        })
+        .then(() => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = "Написать";
         });
 
       initLikeButtonElement();
