@@ -39,6 +39,7 @@
     const listElement = document.getElementById("comments");
     const nameInputElement = document.querySelector(".add-form-name");
     const commentElement = document.querySelector(".add-form-text");
+    const loadingElement = document.querySelector(".loading-comments");
 
     const getFormattedDate = () => {
       const date = new Date();
@@ -55,62 +56,58 @@
     let comments = [];
 
     // GET API
-    fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
-      method: "GET",
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Нет ответа от сервера");
-        return response.json();
+    const getComments = () => {
+      return fetch("https://wedev-api.sky.pro/api/v1/aman/comments", {
+        method: "GET",
       })
-      .then((responseData) => {
-        comments = responseData.comments;
-        renderComments();
-      });
-
-    // Задержка отображения
-    const loadedComments = () => {
-      const loadingElement = document.querySelector(".loading-comments");
-
-      setTimeout(() => {
-        loadingElement.style.display = "none";
-      }, 500);
+        .then((response) => {
+          if (!response.ok) throw new Error("Нет ответа от сервера");
+          return response.json();
+        })
+        .then((responseData) => {
+          comments = responseData.comments;
+          return comments;
+        });
     };
 
     // Рендер комментариев
     const renderComments = () => {
-      const commentsHtml = comments
-        .map((comment, index) => {
-          comment.text = comment.text
-            .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
-            .replaceAll("QUOTE_END", "</div>");
-          let activeLike;
-          comment.isLiked ? (activeLike = "-active-like") : false;
-          return `
-          <li class="comment">
-              <div class="comment-header">
-                <div>${comment.author.name}</div>
-                <div>${comment.date}</div>
-              </div>
-              <div class="comment-body" data-comment=${index}>
-                <div class="comment-text">
-                  ${comment.text}
+      getComments().then((responseData) => {
+        const commentsHtml = responseData
+          .map((comment, index) => {
+            comment.text = comment.text
+              .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
+              .replaceAll("QUOTE_END", "</div>");
+            let activeLike;
+            comment.isLiked ? (activeLike = "-active-like") : "";
+            return `
+            <li class="comment">
+                <div class="comment-header">
+                  <div>${comment.author.name}</div>
+                  <div>${comment.date}</div>
                 </div>
-              </div>
-              <div class="comment-footer">
-                <div class="likes">
-                  <span class="likes-counter">${comment.likes}</span>
-                  <button data-index=${index} class="like-button ${activeLike}"></button>
+                <div class="comment-body" data-comment=${index}>
+                  <div class="comment-text">
+                    ${comment.text}
+                  </div>
                 </div>
-              </div>
-            </li>`;
-        })
-        .join("");
+                <div class="comment-footer">
+                  <div class="likes">
+                    <span class="likes-counter">${comment.likes}</span>
+                    <button data-index=${index} class="like-button ${activeLike}"></button>
+                  </div>
+                </div>
+              </li>`;
+          })
+          .join("");
 
-      listElement.innerHTML = commentsHtml;
-      getFormattedDate();
-      initLikeButtonElement();
-      initQuoteComment();
-      loadedComments();
+        listElement.innerHTML = commentsHtml;
+        loadingElement.style.display = "none";
+        buttonElement.disabled = false;
+        getFormattedDate();
+        initLikeButtonElement();
+        initQuoteComment();
+      });
     };
 
     //Ответить другому юзеру
@@ -145,7 +142,6 @@
             comments[index].isLiked = false;
             comments[index].likes--;
           }
-          renderComments();
         });
       }
     };
@@ -176,63 +172,76 @@
 
     // Клик по кнопке "Отправить"
     buttonElement.addEventListener("click", () => {
-      // Положил старый список в "новую" переменную. innerHTML – меняет содержимое html
-      const oldListElement = listElement.innerHTML;
-
       buttonElement.disabled = true;
       buttonElement.textContent = "Добавляется";
+      loadingElement.style.display = "block";
 
       if (nameInputElement.value === "" && commentElement.value === "") {
         nameInputElement.classList.add("error");
         commentElement.classList.add("error");
-        buttonElement.disabled = true;
         return;
       } else if (nameInputElement.value === "" && commentElement.value !== "") {
         nameInputElement.classList.add("error");
         commentElement.classList.remove("error");
-        buttonElement.disabled = true;
         return;
       } else if (commentElement.value === "" && nameInputElement.value !== "") {
         commentElement.classList.add("error");
         nameInputElement.classList.remove("error");
-        buttonElement.disabled = true;
         return;
       }
 
-      // Добавляем новые комментарии
-      comments.push({
-        author: { name: nameInputElement.value },
-        date: getFormattedDate(),
-        likes: 0,
-        isLiked: false,
-        text: commentElement.value,
-      });
+      const saveName = nameInputElement.value;
+      const saveComment = commentElement.value;
 
-      fetch("https://wedev-api.sky.pro/api/v1/gleb-fokin/comments", {
+      fetch("https://wedev-api.sky.pro/api/v1/aman/comments", {
         method: "POST",
         body: JSON.stringify({
           name: nameInputElement.value,
           text: commentElement.value,
+          forceError: false,
         }),
       })
         .then((response) => {
-          if (!response.ok) throw new Error("Нет ответа от сервера");
+          if (!response.ok) {
+            if (response.status === 400) {
+              throw new Error("400: Некорректный запрос");
+            } else if (response.status === 500) {
+              throw new Error("500: Внутренняя ошибка сервера");
+            } else {
+              throw new Error("Нет ответа от сервера");
+            }
+          }
           return response.json();
         })
         .then((responseData) => {
           renderComments();
         })
         .then(() => {
+          buttonElement.disabled = true;
+          buttonElement.textContent = "Написать";
+          nameInputElement.value = "";
+          commentElement.value = "";
+        })
+        .catch((error) => {
           buttonElement.disabled = false;
           buttonElement.textContent = "Написать";
+
+          if (error.message === "400: Некорректный запрос") {
+            alert("Имя и комментарий должны содержать больше 3 символов");
+          } else if (error.message === "500: Внутренняя ошибка сервера") {
+            alert("Ошибка 500: Внутренняя ошибка сервера");
+          } else {
+            alert("Кажется у тебя сломался интернет");
+          }
+
+          nameInputElement.value = saveName;
+          commentElement.value = saveComment;
         });
 
       initLikeButtonElement();
       renderComments();
       commentElement.classList.remove("error");
       nameInputElement.classList.remove("error");
-      nameInputElement.value = "";
-      commentElement.value = "";
     });
   </script>
 </html>
